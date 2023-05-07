@@ -1,0 +1,166 @@
+﻿@{
+	ViewData["Title"] = "ShoppingCart";
+}
+
+@model List<(Products product, int quantity)>
+
+<script>
+
+	window.onload = function () {
+		hide();
+		if (@(Model != null && Model.Count > 0 ? "true" : "false")) {
+			
+			// Calculate total price of items in cart when page is loaded
+			CalculateTotal();
+		}
+
+		// Add event listeners to detect when users remove items from cart
+		var removeFromCartBtn = document.getElementsByClassName('btn-danger');
+
+		for (var i = 0; i < removeFromCartBtn.length; i++) {
+			removeFromCartBtn[i].addEventListener("click", function () {
+				let elem = event.target;
+				let productId = elem.dataset.productid;
+				console.log(productId);
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/Home/RemoveFromCart");
+				xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+				xhr.onreadystatechange = function () {
+					if (xhr.status === 200) {
+						location.reload();
+					} else {
+						alert("An error occurred while removing the product from the cart.");
+					}
+				};
+				xhr.onerror = function () {
+					alert("An error occurred while removing the product from the cart.");
+				};
+				xhr.send("productId=" + encodeURIComponent(productId));
+			});
+		}
+	}
+
+	// Check if quantity of items in cart is increased or decreased and send quantity and productId to controller
+	function quantityClick() {
+
+		let elem = event.target;
+		let quantityInput = elem.value;
+		let productId = elem.dataset.productid;
+
+		let xhr = new XMLHttpRequest();
+		xhr.open("POST", "/Home/ShoppingCart");
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xhr.send("productId=" + productId + "&quantityInput=" + quantityInput);
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState = XMLHttpRequest.DONE) {
+				console.log("magic");
+				CalculateTotal();
+			}
+		}
+	}
+
+
+	// Hide shopping cart hyperlink in navigation bar when user is at cart page
+	function hide(){
+		let hideCart = document.getElementById("hideme");
+		hideCart.style.display = "none";
+	}
+
+	// Calculate total price of items in cart
+	function CalculateTotal() {
+		let xhr = new XMLHttpRequest();
+		xhr.open("GET", "/Home/CalculateTotal");
+		xhr.setRequestHeader("Content-type", "application/json");
+		xhr.onreadystatechange = function () {
+			if (this.readyState == XMLHttpRequest.DONE) {
+				console.log("magic");
+			}
+
+			let data = JSON.parse(this.responseText);
+			var totalAmount = data.total;
+
+			// Change format of total price to currency format
+			let formatter = new Intl.NumberFormat('en-SG', {
+				style: 'currency',
+				currency: 'SGD',
+			});
+
+			let formattedTotal = formatter.format(totalAmount);
+
+			document.getElementById("totalAmount").innerHTML = formattedTotal;
+		}
+		xhr.send();
+	}
+</script>
+
+<h1 class="mt-3">Shopping Cart</h1>
+
+@if (Model == null || Model.Count == 0)
+{
+	<div class="alert alert-info mt-4">
+		<p>Your cart is empty! Start shopping now by browsing our selection of products.</p>
+		<p>Once you find something you like, simply click 'Add to cart' to add it to your shopping bag.</p>
+		<p>Happy shopping!</p>
+		<img src="~/Image/empty_cart.jpg" style="width: 50%;">
+	</div>
+}
+else
+{
+	@foreach (var item in Model)
+	{
+		<div class="container">
+			<div class="card my-4 md-2">
+				<div class="row no-gutters">
+					<div class="col-md-3">
+						<a href="#">
+							<img src="~/image/@item.product.ProductImage" class="card-img">
+						</a>
+					</div>
+					<div class="col-md-6">
+						<div class="card-body">
+							<h5 class="card-title">@item.product.ProductName</h5>
+							<p class="card-text">@item.product.ProductDescription</p>
+							<p>Price: <strong>S$@item.product.Price</strong></p>
+							<form asp-action="ShoppingCart" method="post">
+								<input type="hidden" name="productId" id="product-id" value="@item.product.ProductId" />
+								<p>Quantity: <input type="number" id="quantity-input" value="@item.quantity" data-productid="@item.product.ProductId" min="1" style="width: 50px;" onclick="quantityClick()" /></p>
+							</form>
+							<button type="button" class="btn btn-danger" id="removeFromCartBtn" data-productid="@item.product.ProductId">Remove from Cart</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+	<div class="container">
+		<div class="row justify-content-end">
+			<p>Total Amount: <strong>S<span id="totalAmount">0</span></strong></p>
+		</div>
+		<div class="row justify-content-end">
+			<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#checkoutmodal">Checkout</button>
+		</div>
+	</div>
+
+	<!-- Modal -->
+	<div class="modal fade" id="checkoutmodal" tabindex="-1" role="dialog" aria-labelledby="Checkouttitle" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="CheckoutTitleID">Confirmation for Checkout</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					Are you sure you want to proceed with the checkout process? Once you confirm, your order will be finalized and you will not be able to make any changes. Please review your order details carefully before proceeding.
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+					<form asp-action="Checkout">
+						<button type="submit" class="btn btn-primary">Save changes</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+}

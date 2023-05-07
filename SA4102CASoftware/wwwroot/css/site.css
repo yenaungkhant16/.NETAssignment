@@ -1,0 +1,94 @@
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+#navbar {
+    background-color: #5CDB95;
+    padding-left: 60px;
+    font-weight: bold;
+}
+
+#logo {
+    font-size: 23px;
+    color: white;
+}
+
+    #logo img {
+        margin-bottom: 15px;
+    }
+
+.navbar-nav {
+    margin-left: 0px;
+}
+
+.nav-link {
+    color: black;
+    /*    font-weight: bold;*/
+    text-shadow: 1px 1px 1px black;
+    margin-left: 15px;
+    transition: 0.5s ease;
+}
+
+    .nav-link:hover {
+        background-color: rgba(161,109,14,1);
+        color: white;
+        border-radius: 5px;
+    }
+
+@media screen and (max-width:330px) {
+    #logo {
+        font-size: 15px;
+    }
+}
+
+.grey-stars {
+    display: inline-block;
+    position: relative;
+    font-family: "Bootstrap-icons";
+    font-size: 1em;
+}
+
+    .grey-stars::before {
+        content: "\f586 \f586 \f586 \f586 \f586";
+        color: lightgrey;
+    }
+
+.gold-stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0;
+}
+
+    .gold-stars::before {
+        content: "\f586 \f586 \f586 \f586 \f586";
+        color: gold;
+    }
+
+.alert-info {
+    text-align: center;
+}
+
+.alert-info img {
+    display: inline-block;
+    margin: 0 auto;
+}
+
+

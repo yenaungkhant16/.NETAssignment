@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\SA4102CASoftware.props" />
+</Project>

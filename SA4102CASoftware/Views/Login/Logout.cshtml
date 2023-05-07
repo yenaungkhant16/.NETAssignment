@@ -1,0 +1,50 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Logout Success";
+}
+
+<head>
+    <title>Login Successful</title>
+    <style>
+        body {
+            height: 100vh;
+            background: #e9eef7;
+            font-family: sans-serif;
+        }
+
+        .spContainer {
+            width: 100%;
+            max-width: 800px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row mt-5">
+            <div class="spContainer mx-auto">
+                <div class="card px-4 py-5 border-0 shadow">
+                    <div class="d-inline text-left mb-3">
+                        <h1 class="font-weight-bold">Logout Successful!</h1>
+                        <h2>Redirecting you to home page...</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+
+<script>
+    // Shows user login success and redirect
+    setTimeout(function () {
+        window.location.href = '@Url.Action("Index", "Home")';
+    }, 2000); // delay for 2 seconds
+</script>
+
+
+
+
+

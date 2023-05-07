@@ -1,0 +1,239 @@
+﻿@model List<MyPurchasesModel>
+
+@{
+    ViewData["Title"] = "My Purchases";
+    // group the purchases by order date, and sort the purchases by order data in descending order
+    var groupedPurchases = Model.GroupBy(p => p.OrderDate);
+}
+
+<link rel="stylesheet" href="~/css/MyPurchases.css" />
+<script>
+    window.onload = function () {
+
+        // Show existing ratings (if any) when page is loaded
+        showExistingReviews();
+
+
+        // add event listener to detect any rating submissions
+        let ratingForms = document.getElementsByClassName("rating");
+
+        for (var i = 0; i < ratingForms.length; i++) {
+            ratingForms[i].addEventListener("change", (event) => {
+                let target = event.target.closest('.rating');
+                sendOption(target);
+            });
+
+
+        };
+    };
+
+    // send rating value, productId and orderId to controller
+    function sendOption(target) {
+
+        let selectedOption = target.querySelector('input[name="stars"]:checked');
+        let rating = selectedOption.value;
+        let form = selectedOption.closest('form');
+        let productId = form.dataset.productid;
+        let orderId = form.dataset.orderid;
+        let ratingAlert = form.nextElementSibling;
+
+
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "/Purchases/SubmitReview");
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function () {
+            if (xhr.status == 200) {
+                console.log("success"); // for debugging
+
+                // Inform user that rating has been submitted
+                showReviewAlert(ratingAlert);
+            }
+            else {
+                console.log("error");
+            }
+        };
+
+        xhr.send("rating=" + rating + "&productId=" + productId + "&orderId=" + orderId);
+
+    };
+
+    // inform user that rating has been submitted
+    function showReviewAlert(ratingAlert) {
+        let elem = ratingAlert;
+        elem.style.display = "block";
+
+        // alert to be shown for only five seconds
+        setTimeout(function () {
+            elem.style.display = 'none';
+        }, 5000);
+    }
+
+    // show reviews if rating already exists in the database
+    function showExistingReviews() {
+        let forms = document.getElementsByClassName('rating');
+        console.log(forms);
+
+        for (var i = 0; i < forms.length; i++) {
+            let currentRating = forms[i].dataset.currentrating;
+            console.log(currentRating);
+            if (currentRating != null && currentRating > 0) {
+
+                let toCheckOption = forms[i].querySelector(`input[value="${currentRating}"]`);
+                console.log(toCheckOption);
+
+                toCheckOption.checked = true;
+
+            };
+        };
+    }
+
+</script>
+
+<div class="container">
+    <div class="row justify-content-between align-items-center">
+        <div class="col-4">
+            <h1 class="mb-0">My Purchases</h1>
+            <br />
+        </div>
+    </div>
+</div>
+
+
+
+@if (Model.Count == 0)
+{
+    <div class="container bg-light-blue">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <div class="error-template">
+                    <h1 class="display-4">
+                        You do not have any purchases!
+                    </h1>
+                    <img src="~/Image/sad_face.png" class="img-fluid mt-3" style="max-width: 400px;">
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    @* Iterate through to display the orders per order date *@
+    int i = 0;
+    @foreach (var group in groupedPurchases)
+    {
+        <div class="Container p-3 bg-light-blue bg-opacity-10 border border-info border-start-0 rounded">
+            @*Show the purchase date from the same order*@
+            <p align="right">Purchase Date: @group.Key.ToString("dd MMM yyyy HH:mm")</p>
+
+            @* Group the orders by unique values and save the activation codes into a list *@
+            @foreach (var item in group.GroupBy(p => p.ProductId)
+           .Select(g => new
+           {
+               OrderId = g.First().OrderId,
+               ProductId = g.Key,
+               ProductName = g.First().ProductName,
+               ProductDescription = g.First().ProductDescription,
+               ProductImage = g.First().ProductImage,
+               Quantity = g.First().Quantity,
+               Rating = g.First().Rating,
+               ActivationCodes = g.Select(p => p.ActivationCode).ToList()
+           }))
+            {
+                @*Display the products, shown only unique products *@
+                <div class="card my-4 md-2">
+                    <div class="row no-gutters">
+                        <div class="col-md-3">
+                            <a>
+                                <img src="~/Image/@item.ProductImage" class="card-img" />
+                            </a>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="card-body col-md-12 ml-4">
+                                    <h5 class="card-title">@item.ProductName</h5>
+                                    <p class="card-text">
+                                        @item.ProductDescription
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="card-body ml-4">
+                                    <p><strong>Rating:</strong></p>
+                                    @*Allow users to submit and edit product ratings*@
+                                    <form class="rating" data-productid="@item.ProductId" data-orderid="@item.OrderId" data-currentrating="@item.Rating">
+                                        <label>
+                                            <input type="radio" name="stars" value="1" />
+                                            <span class="icon">★</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="stars" value="2" />
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="stars" value="3" />
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="stars" value="4" />
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="stars" value="5" />
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                            <span class="icon">★</span>
+                                        </label>
+                                    </form>
+
+                                    <span class="review-alert">Review submitted!</span>
+
+                                </div>
+                                <div class="card-body col-md-8">
+                                    <p><strong>Quantity: </strong> @item.Quantity </p>
+                                    <div>
+                                        <p><strong>Activation Code:</strong></p>
+                                        @{
+                                            var activationCodesList = item.ActivationCodes.ToList();
+                                        }
+                                        @* If there is one activation code, just show it*@
+                                        @if (activationCodesList.Count == 1)
+                                        {
+                                            <p>@activationCodesList[0]</p>
+                                        }
+                                        @* If there is more than one activation code show a dropdown menu*@
+                                        else
+                                        {
+                                            <select>
+                                                @foreach (var code in activationCodesList)
+                                                {
+                                                    <option>@code</option>
+                                                }
+                                            </select>
+                                        }
+                                        @{
+                                            i++;
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row no-gutters">
+                        <div class="col-md-12 mb-2 d-flex justify-content-end" style="margin-right: 1rem">
+                            <button onclick="alert('Downloaded Successfully!')" class="btn btn-primary" style="margin-right: 1rem">Download</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <br />
+    }
+}

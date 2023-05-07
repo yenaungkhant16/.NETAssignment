@@ -1,0 +1,69 @@
+﻿@using SA4102CASoftware.Models
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model List<ProductRatingViewModel>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <input type="text" class="form-control" id="search-box" placeholder="Search...">
+            <div id="search-results">
+                    <div class="row mt-3 justify-content-around">
+                        @foreach (var product in Model)
+                        {
+                            <div class="card col-md-4 mb-3">
+                                <div class="card-header bg-transparent border-success">
+                                    <img class="card-img-top" src="~/Image/@product.Product.ProductImage" alt="@product.Product.ProductName" width="30" height="300">
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">@product.Product.ProductName</h5>
+                                    <p class="card-text">@product.Product.ProductDescription</p>
+                                    <p class="card-text">$@product.Product.Price</p>
+                                    <div class="show-rating">
+                                        <span class="grey-stars">
+                                            <span class="gold-stars" style="width: @product.AverageRating%;"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent border-success">
+                                    <form method="post" action="@Url.Action("ShoppingCart", "Home")">
+                                    <div class="d-grid gap-2 col-6 mx-auto">
+                                        <input type="hidden" name="productId" value="@product.Product.ProductId" />
+                                        <button type="submit" class="btn btn-primary btn-buy" type="button" onclick="alert('Product added to the cart!')">Add to cart</button>
+                                    </div>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get references to the input field and the search results div
+    const searchBox = document.getElementById('search-box');
+    const searchResults = document.getElementById('search-results');
+
+    // Attach an event listener to the search box
+    searchBox.addEventListener('input', () => {
+        // Get the search query
+        const query = searchBox.value;
+
+        // Make an Ajax request to the server
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Append the search results to the search results div
+                searchResults.innerHTML = xhr.responseText;
+            }
+        };
+        xhr.open('GET', `/Home/LiveTagSearch?q=${query}`);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send();
+    });
+</script>
